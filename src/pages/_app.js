@@ -13,7 +13,6 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { useMemo } from "react";
-import Nav from "@/components/Navbar";
 
 export default function App({ Component, pageProps }) {
   const network = WalletAdapterNetwork.Devnet;
