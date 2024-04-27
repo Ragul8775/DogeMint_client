@@ -127,6 +127,8 @@ export default function Home() {
       } catch (error) {
         console.error("Handle Image Upload Error:", error);
         reject(error);
+        setImageLoading(false)
+
       }
     })
    
@@ -223,6 +225,8 @@ export default function Home() {
         type: "error",
       });
       console.error("Error in minting:", error);
+      setNftMintLoading(false);
+
     }
 }
 const handleSubmit = async(e)=>{
