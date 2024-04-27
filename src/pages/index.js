@@ -197,7 +197,7 @@ export default function Home() {
     });
     console.log(body);
     try {
-        const response = await fetch('http://localhost:8000/api/prepare-mint', {
+        const response = await fetch('https://dogemint-server.onrender.com/api/prepare-mint', {
             method: 'POST',
             headers: headers,
             body: body
@@ -253,6 +253,13 @@ const handleSubmit = async(e)=>{
 
   const nft = await prepareMint(metaUri,name,symbol,sellerFee,creator)
   setIsLoading(false)
+  setFormData({
+    name: "",
+    about: "",
+    value: "",
+    symbol: "",
+  })
+  SetUserUpImage([])
   
 }
   
@@ -405,16 +412,26 @@ return (
         Minting NFT..
       </div>
       )}
-      {explorerData && (
-        <div className="text-xl font-bold text-center glassmorphism shadow-lg p-4 flex items-center justify-around">
-        <Link href={explorerData || ""}>
-          Eplore your NFT
-        </Link>
-        </div>
-      )}
+      
+        
     </div>
      )}
-     {}
+
+    {explorerData && (
+      <div className="glassmorphism max-w-sm mx-auto font-md flex items-center justify-evenly">
+            <Image
+            src="/assets/Images/solana.png"
+            height={50}
+            width={50}
+            alt="solnana"/>
+        <Link href={explorerData}>
+            <p className="font-semibold hover:underline ">Click To Explore Your NFT</p>
+        </Link>
+
+      </div>
+    )}
+
+
   </main>
 );
 }
