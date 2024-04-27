@@ -5,7 +5,7 @@ import {
   toMetaplexFile,
   keypairIdentity,
 } from "@metaplex-foundation/js";
-
+import { CirclesWithBar, DNA ,Grid} from 'react-loader-spinner'
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection } from "@solana/web3.js";
 import dynamic from "next/dynamic";
@@ -13,6 +13,7 @@ import { Inter } from "next/font/google";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import NotificationComponent from "@/components/Notification";
+import Link from "next/link";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
@@ -31,7 +32,11 @@ export default function Home() {
   const [metaImageUri, setMetaImageUri] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [metaData, setMetaData] = useState("");
-
+  const [isLoading, setIsLoading] = useState(false);
+  const[imageLoading,setImageLoading] = useState(false);
+  const [metadataLoading, setMetaDataLoading] = useState(false);
+  const [nftLoading, setNftMintLoading] = useState(false);
+  const[explorerData, setExplorerData] = useState("")
  console.log(metaImageUri)
   const rpcEndPoint =
     "https://tiniest-fluent-water.solana-devnet.quiknode.pro/428929c7ca1602c0468b72fd69f26e28a5dc65f6/";
@@ -82,6 +87,7 @@ export default function Home() {
       try {
         reader.onload = async (e) => {
           try {
+            setImageLoading(true)
             const imageUintBuffer = new Uint8Array(e.target.result);
             
             const imageMetaplex = toMetaplexFile(imageUintBuffer, file.name);
@@ -94,6 +100,7 @@ export default function Home() {
               type: "success",
             });
             resolve(imageUri)
+            setImageLoading(false)
           } catch (uploadError) {
             setNotification({
              
@@ -102,6 +109,8 @@ export default function Home() {
             });
             console.error("Error uploading image:", uploadError);
             reject(uploadError);
+            setImageLoading(false)
+
           }
         };
         reader.onerror = (readError) => {
@@ -113,6 +122,8 @@ export default function Home() {
           console.error("Error reading file:", readError);
         };
         reader.readAsArrayBuffer(file);
+        setImageLoading(false)
+
       } catch (error) {
         console.error("Handle Image Upload Error:", error);
         reject(error);
@@ -136,7 +147,7 @@ export default function Home() {
         console.error("metaImage is undefined or null");
         return; 
       }
-      
+      setMetaDataLoading(true)      
       const metadataMetaplex = await METAPLEX.nfts().uploadMetadata({
         name: name,
         about: about,
@@ -158,12 +169,16 @@ export default function Home() {
         message: "Metadata Generated",
         type: "success",
       });
+      setMetaDataLoading(false)      
       return metadataMetaplex;
+
     } catch (error) {
       setNotification({
         message: `Failed to Generate Image: ${error.message}`,
         type: "error",
       });
+      setMetaDataLoading(false)      
+
       console.log("Error:", error);
       throw error;
     }
@@ -172,7 +187,7 @@ export default function Home() {
     const headers = {
         'Content-Type': 'application/json'
     };
-
+     setNftMintLoading(true);
     const body = JSON.stringify({
         metaUri,    // Ensure variable names match those expected by the server
         name,
@@ -193,14 +208,26 @@ export default function Home() {
         }
 
         const data = await response.json();
-        console.log('Success:', data);
-        return data; // Process the data as needed
+        console.log('Success:', data.explorer);
+        setNotification({
+          message: "NFT MInted",
+          type: "success",
+        });
+        setNftMintLoading(false);
+        setExplorerData(data.explorer)
+        return data; 
     } catch (error) {
-        console.error('Error preparing mint:', error);
+      setNotification({
+          
+        message: `Error MInting NFT: ${error}`,
+        type: "error",
+      });
+      console.error("Error in minting:", error);
     }
 }
 const handleSubmit = async(e)=>{
   e.preventDefault();
+  setIsLoading(true);
   const imageUri = await imageUriMetaplex(userUpImage);
   console.log("ImageUri:", imageUri)
   const imageType = "image/png"
@@ -225,6 +252,7 @@ const handleSubmit = async(e)=>{
   const creator = [{address:wallet.publicKey.toString(), share:100}];
 
   const nft = await prepareMint(metaUri,name,symbol,sellerFee,creator)
+  setIsLoading(false)
   
 }
   
@@ -244,11 +272,12 @@ return (
     </section>
     {/* Form Mata data Collection */}
     <div>
-      <div className="glassmorphism max-w-sm mx-auto my-4 flex justify-center">
-        <form className=" mx-auto" onSubmit={handleSubmit}>
+      <div className="glassmorphism max-w-sm mx-auto my-4 flex justify-center flex-col ">
           <h1 className="text-center text-2xl font-bold  my-4">
             NFT Details
           </h1>
+    
+        <form className=" mx-auto" onSubmit={handleSubmit}>
           <div className="mb-5">
             <label className="block mb-2 text-sm font-medium text-gray200">
               Upload Image
@@ -322,9 +351,77 @@ return (
           </div>
         </form>
       </div>
+</div>
+      {isLoading && (
+     <div className="glassmorphism max-w-sm mx-auto">
+    {imageLoading && (
+        <div className="text-xl font-bold text-center glassmorphism shadow-lg p-4 flex items-center justify-around">
+          <div>
+          <CirclesWithBar
+  height="50"
+  width="50"
+  color="#3662ED"
+  outerCircleColor="#543BC3"
+  innerCircleColor="#3662ED"
+  barColor="#23BB6D"
+  ariaLabel="circles-with-bar-loading"
+  wrapperStyle={{}}
+  wrapperClass=""
+  visible={true}
+  />
+          </div>
+          Generating Image Uri..
+        </div>
+      )}
+      {metadataLoading && (
+        <div className="text-xl font-bold text-center glassmorphism shadow-lg p-4 flex items-center justify-around">
+        <div>
+        <DNA
+  visible={true}
+  height="50"
+  width="50"
+  ariaLabel="dna-loading"
+  wrapperStyle={{}}
+  wrapperClass="dna-wrapper"
+  />
+        </div>
+        Generating Metadata..
+      </div>
+      )}
+      {nftLoading && (
+        <div className="text-xl font-bold text-center glassmorphism shadow-lg p-4 flex items-center justify-around">
+        <div>
+        <Grid
+  visible={true}
+  height="50"
+  width="50"
+  color="#4fa94d"
+  ariaLabel="grid-loading"
+  radius="12.5"
+  wrapperStyle={{}}
+  wrapperClass="grid-wrapper"
+  />
+        </div>
+        Minting NFT..
+      </div>
+      )}
+      {explorerData && (
+        <div className="text-xl font-bold text-center glassmorphism shadow-lg p-4 flex items-center justify-around">
+        <Link href={explorerData || ""}>
+          Eplore your NFT
+        </Link>
+        </div>
+      )}
     </div>
+     )}
+     {}
   </main>
 );
 }
+          
+     
+     
+        
+    
 
 
